@@ -22,3 +22,8 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+
+## bug
+- Cannot read property 'isCE' of null 
+remove node modules , reinstall `cnpm i`

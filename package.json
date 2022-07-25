@@ -13,19 +13,20 @@
   },
   "main": "background.js",
   "dependencies": {
-    "core-js": "^3.6.5",
-    "vue": "^3.0.0"
+    "core-js": "^3.8.3",
+    "element-plus": "^2.2.10",
+    "vue": "^3.2.13"
   },
   "devDependencies": {
-    "@vue/cli-plugin-babel": "~4.5.14",
-    "@vue/cli-plugin-eslint": "~4.5.14",
-    "@vue/cli-service": "~4.5.14",
+    "@vue/cli-plugin-babel": "~5.0.8",
+    "@vue/cli-plugin-eslint": "~5.0.8",
+    "@vue/cli-service": "~5.0.8",
     "@vue/compiler-sfc": "^3.0.0",
     "babel-eslint": "^10.1.0",
-    "electron": "^13.0.0",
+    "electron": "^18.1.0",
     "electron-devtools-installer": "^3.1.0",
-    "eslint": "^6.7.2",
-    "eslint-plugin-vue": "^7.0.0",
+    "eslint": "^7.32.0",
+    "eslint-plugin-vue": "^8.0.3",
     "vue-cli-plugin-electron-builder": "~2.1.1"
   },
   "eslintConfig": {
@@ -34,8 +35,7 @@
       "node": true
     },
     "extends": [
-      "plugin:vue/vue3-essential",
-      "eslint:recommended"
+      "plugin:vue/vue3-essential"
     ],
     "parserOptions": {
       "parser": "babel-eslint"

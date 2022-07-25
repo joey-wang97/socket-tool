@@ -1,26 +1,21 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <el-tabs v-model="activeTab">
+    <el-tab-pane label="TCP/UDP Client" name="tcpClient"
+      ><tcp-view
+    /></el-tab-pane>
+    <el-tab-pane label="TCP/UDP Server" name="tcpServer"
+      ><tcp-view
+    /></el-tab-pane>
+    <el-tab-pane label="Serial" name="serial"><tcp-view /></el-tab-pane>
+  </el-tabs>
 </template>
 
-<script>
-import HelloWorld from './components/HelloWorld.vue'
+<script setup>
+import TcpView from "./views/TcpView.vue";
+import { ref } from "vue";
 
-export default {
-  name: 'App',
-  components: {
-    HelloWorld
-  }
-}
+const activeTab = ref("tcpClient");
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
 </style>
