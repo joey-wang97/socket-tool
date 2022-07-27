@@ -35,7 +35,7 @@ import { reactive, ref } from "vue";
 import net from "net";
 import { ElMessage } from "element-plus";
 
-const form = reactive({ serverIp: "localhost", serverPort: 6000 });
+const form = reactive({ serverIp: "localhost", serverPort: 8080 });
 const messages = ref("");
 let client = null;
 
