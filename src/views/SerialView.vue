@@ -1,26 +1,5 @@
 <template>
   <div>
-    <el-form :model="form">
-      <el-form-item label="server ip">
-        <el-input v-model="form.serverIp" />
-      </el-form-item>
-      <el-form-item label="server port">
-        <el-input v-model="form.serverPort" />
-      </el-form-item>
-      <el-form-item label="local port">
-        <el-input v-model="form.localPort" />
-      </el-form-item>
-      <el-form-item label="connect type">
-        <el-input v-model="form.connectType" />
-      </el-form-item>
-      <el-form-item label="data to send">
-        <el-input v-model="form.data" />
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="connect" color="green">Connect</el-button>
-        <el-button @click="send" color="blue">Send</el-button>
-      </el-form-item>
-    </el-form>
     <el-input
       v-model="messages"
       :rows="15"
@@ -32,28 +11,22 @@
 
 <script setup>
 import { reactive, ref } from "vue";
-import net from "net";
+import { SerialPort } from "serialport";
 import { ElMessage } from "element-plus";
 
-const form = reactive({ serverIp: "localhost", serverPort: 1234 });
+const form = reactive({ path: "/dev/tty-usbserial1", baudRate: 57600 });
 const messages = ref("");
-let client = null;
+let port = null;
 
 const connect = () => {
-  client = net.connect(parseInt(form.serverPort), form.serverIp, () => {
-    ElMessage({
-      message: "connect success",
-      type: "success",
-    });
-    messages.value =
-      messages.value + `connect to ${form.serverIp}:${form.serverPort} success`;
+  port = new SerialPort({
+    path: form.path,
+    baudRate: form.baudRate,
   });
-  client.on("data", (data) => {
-    console.log("on data", data);
-    messages.value = messages.value + `\n${data}`;
-  });
-  client.on("end", () => {
-    console.log("disconnected from server");
+
+  // Open errors will be emitted as an error event
+  port.on("error", function (err) {
+    console.log("Error: ", err.message);
   });
 };
 
@@ -72,13 +45,17 @@ const send = () => {
     });
     return;
   }
-  client.write(form.data);
+  port.write("main screen turn on", function (err) {
+    if (err) {
+      return console.log("Error on write: ", err.message);
+    }
+    console.log("message written");
+  });
   ElMessage({
     message: "send data success",
     type: "success",
   });
 };
-
 </script>
 
 <style>
