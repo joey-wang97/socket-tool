@@ -1,32 +1,33 @@
 <template>
   <div>
     <el-form :model="form">
-      <el-form-item label="server ip">
-        <el-input v-model="form.serverIp" />
-      </el-form-item>
-      <el-form-item label="server port">
-        <el-input v-model="form.serverPort" />
-      </el-form-item>
+      <el-row>
+        <el-form-item label="server ip">
+          <el-input v-model="form.serverIp" />
+        </el-form-item>
+        <el-form-item label="server port">
+          <el-input v-model="form.serverPort" />
+        </el-form-item>
+      </el-row>
       <el-form-item label="local port">
         <el-input v-model="form.localPort" />
-      </el-form-item>
-      <el-form-item label="connect type">
-        <el-input v-model="form.connectType" />
       </el-form-item>
       <el-form-item label="data to send">
         <el-input v-model="form.data" />
       </el-form-item>
+      <el-form-item label="data type">
+        <el-radio-group v-model="form.dataType">
+          <el-radio label="string">string</el-radio>
+          <el-radio label="hex">Hex</el-radio>
+        </el-radio-group>
+      </el-form-item>
       <el-form-item>
         <el-button @click="connect" color="green">Connect</el-button>
+        <el-button @click="disconnect">Disconnect</el-button>
         <el-button @click="send" color="blue">Send</el-button>
       </el-form-item>
     </el-form>
-    <el-input
-      v-model="messages"
-      :rows="15"
-      type="textarea"
-      placeholder="messages"
-    />
+    <el-input v-model="messages" :rows="15" type="textarea" placeholder="messages" />
   </div>
 </template>
 
@@ -37,28 +38,42 @@ import { ElMessage } from "element-plus";
 
 const form = reactive({ serverIp: "localhost", serverPort: 6000 });
 const messages = ref("");
-let client = null;
+let socket = null;
 
 const connect = () => {
-  client = net.connect(parseInt(form.serverPort), form.serverIp, () => {
+  try {
+    socket = net.connect(parseInt(form.serverPort), form.serverIp);
+  } catch (e) {
+    console.error(e);
     ElMessage({
-      message: "connect success",
-      type: "success",
+      message: "连接失败" + e,
+      type: "error",
     });
-    messages.value =
-      messages.value + `connect to ${form.serverIp}:${form.serverPort} success`;
+    return;
+  }
+
+  ElMessage({
+    message: "connect success",
+    type: "success",
   });
-  client.on("data", (data) => {
+  messages.value =
+    messages.value + `connect to ${form.serverIp}:${form.serverPort} success`;
+  socket.on("data", (data) => {
     console.log("on data", data);
     messages.value = messages.value + `\n${data}`;
   });
-  client.on("end", () => {
+  socket.on("end", () => {
     console.log("disconnected from server");
   });
 };
 
+const disconnect = () => {
+  if (socket == null) return;
+  socket.end();
+};
+
 const send = () => {
-  if (client == null) {
+  if (socket == null) {
     ElMessage({
       message: "please connect server first",
       type: "warning",
@@ -72,7 +87,11 @@ const send = () => {
     });
     return;
   }
-  client.write(form.data);
+  let data = form.data;
+  if (form.dataType == "hex") {
+    data = Buffer.from(form.data);
+  }
+  socket.write(data);
   ElMessage({
     message: "send data success",
     type: "success",
@@ -82,4 +101,5 @@ const send = () => {
 </script>
 
 <style>
+.class1 {}
 </style>
