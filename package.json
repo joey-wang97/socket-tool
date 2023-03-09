@@ -16,7 +16,6 @@
     "@serialport/bindings-cpp": "^10.7.0",
     "core-js": "^3.8.3",
     "element-plus": "^2.2.10",
-    "rebuild": "^0.1.2",
     "serialport": "^10.4.0",
     "vue": "^3.2.13"
   },

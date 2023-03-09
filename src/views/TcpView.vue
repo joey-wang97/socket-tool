@@ -2,20 +2,20 @@
   <div>
     <el-form :model="form">
       <el-row>
-        <el-form-item label="server ip">
+        <el-form-item label="服务端地址">
           <el-input v-model="form.serverIp" />
         </el-form-item>
-        <el-form-item label="server port">
-          <el-input v-model="form.serverPort" />
+        <el-form-item label="端口">
+          <el-input-number v-model="form.serverPort" :min="0" :max="65535" />
         </el-form-item>
       </el-row>
-      <el-form-item label="local port">
-        <el-input v-model="form.localPort" />
+      <el-form-item label="本地端口">
+        <el-input-number v-model="form.localPort" :min="0" :max="65535" />
       </el-form-item>
-      <el-form-item label="data to send">
+      <el-form-item label="发送区数据">
         <el-input v-model="form.data" />
       </el-form-item>
-      <el-form-item label="data type">
+      <el-form-item label="数据类型">
         <el-radio-group v-model="form.dataType">
           <el-radio label="string">string</el-radio>
           <el-radio label="hex">Hex</el-radio>
@@ -27,6 +27,7 @@
         <el-button @click="send" color="blue">Send</el-button>
       </el-form-item>
     </el-form>
+    <div>接收区数据</div>
     <el-input v-model="messages" :rows="15" type="textarea" placeholder="messages" />
   </div>
 </template>
@@ -41,25 +42,25 @@ const messages = ref("");
 let socket = null;
 
 const connect = () => {
-  try {
-    socket = net.connect(parseInt(form.serverPort), form.serverIp);
-  } catch (e) {
+  socket = net.connect(parseInt(form.serverPort), form.serverIp);
+  socket.on('connect', () => {
+    ElMessage({
+      message: "connect success",
+      type: "success",
+    });
+    messages.value =
+      messages.value + `connect to ${form.serverIp}:${form.serverPort} success`;
+  });
+  socket.on('error', (e) => {
     console.error(e);
     ElMessage({
-      message: "连接失败" + e,
+      message: "连接失败:" + e,
       type: "error",
     });
-    return;
-  }
-
-  ElMessage({
-    message: "connect success",
-    type: "success",
   });
-  messages.value =
-    messages.value + `connect to ${form.serverIp}:${form.serverPort} success`;
+
   socket.on("data", (data) => {
-    console.log("on data", data);
+    // console.log("on data", data);
     messages.value = messages.value + `\n${data}`;
   });
   socket.on("end", () => {
@@ -101,5 +102,4 @@ const send = () => {
 </script>
 
 <style>
-.class1 {}
 </style>
