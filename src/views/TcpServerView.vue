@@ -1,10 +1,11 @@
 <template>
   <div>
-    <el-input-number v-model="serverPort" :min="0" :max="65535" />
-    <el-input v-model="data" />
-    <el-button @click="startServer" color="green">Start</el-button>
+    <div class="flex-row gap20">
+      <el-input-number v-model="serverPort" :min="0" :max="65535" />
+      <el-button @click="startServer" color="green">Start</el-button>
+    </div>
     <div class="flex-row">
-      <div>
+      <div class="left-panel">
         <div v-for="(client, index) in clients" :key="index">
           <div>{{ client.ip }}:{{ client.port }}</div>
           <!-- 连接时间 -->
@@ -142,4 +143,8 @@ const addMessage = ({ content, type }) => {
 };
 </script>
 
-<style></style>
+<style lang="less">
+.left-panel {
+  
+}
+</style>
