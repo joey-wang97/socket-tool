@@ -25,8 +25,8 @@ protocol.registerSchemesAsPrivileged([{
 async function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    // width: 800,
-    // height: 600,
+    width: 800,
+    height: 650,
     webPreferences: {
 
       // Use pluginOptions.nodeIntegration, leave this alone
@@ -38,7 +38,10 @@ async function createWindow() {
       spellcheck: false,
     }
   })
-  win.maximize();
+  // win.maximize();
+  if (!isDevelopment) {
+    win.setMenuBarVisibility(false);
+  }
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
