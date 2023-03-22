@@ -3,7 +3,10 @@
 import {
   app,
   protocol,
-  BrowserWindow
+  BrowserWindow,
+  ipcMain,
+  dialog,
+  shell
 } from 'electron'
 import {
   createProtocol
@@ -12,6 +15,7 @@ import installExtension, {
   VUEJS3_DEVTOOLS
 } from 'electron-devtools-installer'
 const isDevelopment = process.env.NODE_ENV !== 'production'
+let mainWin;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([{
@@ -24,7 +28,7 @@ protocol.registerSchemesAsPrivileged([{
 
 async function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  mainWin = new BrowserWindow({
     width: 800,
     height: 650,
     webPreferences: {
@@ -40,17 +44,17 @@ async function createWindow() {
   })
   // win.maximize();
   if (!isDevelopment) {
-    win.setMenuBarVisibility(false);
+    mainWin.setMenuBarVisibility(false);
   }
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    await win.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
+    await mainWin.loadURL(process.env.WEBPACK_DEV_SERVER_URL)
     if (!process.env.IS_TEST) win.webContents.openDevTools()
   } else {
     createProtocol('app')
     // Load the index.html when not in development
-    win.loadURL('app://./index.html')
+    mainWin.loadURL('app://./index.html')
   }
 }
 
@@ -98,3 +102,78 @@ if (isDevelopment) {
     })
   }
 }
+
+ipcMain.handle('close-app', (event, arg) => {
+  if (mainWin) {
+    mainWin.close();
+  }
+})
+
+ipcMain.handle('minimize-app', (event, arg) => {
+  mainWin.minimize();
+})
+
+ipcMain.handle('open-devtools', (event, arg) => {
+  mainWin.openDevTools();
+})
+
+ipcMain.handle('reload', (event, arg) => {
+  mainWin.reload();
+})
+
+ipcMain.handle('choose-direcotry', (event, arg) => {
+  mainWin.focus();
+  let path = dialog.showOpenDialogSync(mainWin, {
+    defaultPath: arg ? arg : '',
+    properties: ['openDirectory']
+  })
+  return new Promise((resolve, reject) => {
+    if (!path) {
+      // reject();
+      resolve(null);
+    } else {
+      resolve(path[0]);
+    }
+  });
+})
+
+ipcMain.handle('choose-file', (event, arg) => {
+  mainWin.focus();
+  let path = dialog.showOpenDialogSync(mainWin, {
+    defaultPath: arg ? arg : '',
+    properties: ['openFile']
+  })
+  return new Promise((resolve, reject) => {
+    if (!path) {
+      // reject();
+      resolve(null);
+    } else {
+      resolve(path[0]);
+    }
+  });
+})
+
+ipcMain.handle('save-file', (event, arg) => {
+  mainWin.focus();
+  let path = dialog.showSaveDialogSync(mainWin, {
+    defaultPath: arg ? arg : '',
+  })
+  return new Promise((resolve, reject) => {
+    if (!path) {
+      // reject();
+      resolve(null);
+    } else {
+      resolve(path);
+    }
+  });
+})
+
+ipcMain.handle('open-path', (event, arg) => {
+  return shell.openPath(arg);
+})
+
+
+ipcMain.handle('show-item-in-folder', (event, arg) => {
+  return shell.showItemInFolder(arg);
+})
+

@@ -1,17 +1,21 @@
 <template>
-  <div>
+  <div class="flex-column">
     <div class="flex-row gap20">
+      <div class=" label">选择ip</div>
+      <el-select v-model="serverIp">
+        <el-option v-for="item in ipOptions" :key="item.value" :label="item.label" :value="item.value" />
+      </el-select>
       <el-input-number v-model="serverPort" :min="0" :max="65535" />
-      <el-button @click="startServer" color="green">Start</el-button>
+      <el-button @click="startBtnStatus.onClick" :color="startBtnStatus.color">{{ startBtnStatus.text }}</el-button>
     </div>
-    <div class="flex-row">
+    <div class="flex-row auto-height" style="margin-top: 20px;">
       <div class="left-panel">
         <div v-for="(client, index) in clients" :key="index">
           <div>{{ client.ip }}:{{ client.port }}</div>
           <!-- 连接时间 -->
           <div>{{ client.connectTime }}</div>
         </div>
-        <div v-if="!clients.length">暂无客户端连接</div>
+        <div v-if="!clients.length" class="placeholder" style="text-align: center; margin-top: 50px;">暂无客户端连接</div>
       </div>
       <!-- 消息区域 -->
       <div>
@@ -36,18 +40,42 @@
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { reactive, ref, computed } from "vue";
 import net from "net";
 import { ElMessage, ElMessageBox } from "element-plus";
+import { listAllLocalIp } from "@/util/commonUtil";
 
+const serverIp = ref('0.0.0.0');
 const serverPort = ref(8020);
 let server = null;
-let serverStarted = false;
+let serverStarted = ref(false);
 // 客户端列表
 const clients = reactive([]);
 const sendData = ref('');
 const sendType = ref('1');
 const currClient = reactive({});
+// 获取本机所有ip
+const ipOptions = ['0.0.0.0'].concat(listAllLocalIp()).map(ip => {
+  return {
+    label: ip,
+    value: ip
+  }
+});
+
+const startBtnStatus = computed(() => {
+  if (serverStarted.value) {
+    return {
+      onClick: stopServer,
+      text: '断开',
+      color: 'red'
+    }
+  }
+  return {
+    onClick: startServer,
+    text: '启动',
+    color: 'green'
+  }
+})
 
 const startServer = () => {
   // 有新连接时，进入回调
@@ -105,8 +133,20 @@ const startServer = () => {
       confirmButtonText: 'OK'
     })
   });
-  server.listen(serverPort.value, () => {
-    serverStarted = true;
+  server.on("close", (e) => {
+    // server.close();
+    serverStarted.value = false;
+    ElMessage({
+      message: "服务已关闭",
+      type: "info",
+    });
+    addMessage(`服务已关闭`);
+  });
+  server.listen({
+    host: serverIp.value,
+    port: serverPort.value
+  }, () => {
+    serverStarted.value = true;
     ElMessage({
       message: "启动成功",
       type: "success",
@@ -114,6 +154,11 @@ const startServer = () => {
     addMessage(`TCP Server启动成功, 端口:${serverPort.value}`);
   });
 };
+
+const stopServer = () => {
+  server.close();
+  // serverStarted.value = false;
+}
 
 // const send = () => {
 //   if (client == null) {
@@ -145,6 +190,8 @@ const addMessage = ({ content, type }) => {
 
 <style lang="less">
 .left-panel {
-  
+  border: 1px solid #ccc;
+  height: 100%;
+  width:200px
 }
 </style>

@@ -494,3 +494,20 @@ export function customFormatTime(date, fmt) {
     };
     return fmt;
 }
+
+/**
+ * 获取所有本机IP
+ */
+export function listAllLocalIp() {
+    const ifaces = os.networkInterfaces();
+    let ips = [];
+    for (let i in ifaces) {
+        let dev = ifaces[i];
+        for (let ip of dev) {
+            if (ip.family == 'IPv4') {
+                ips.push(ip.address);
+            }
+        }
+    }
+    return ips;
+}
