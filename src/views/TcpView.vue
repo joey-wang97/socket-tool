@@ -1,13 +1,13 @@
 <template>
   <div>
-    <div class="flex-row gap20">
+    <div class="flex-row-vertical-center gap20">
       <div class="label">服务端地址:</div>
       <el-input v-model="form.serverIp" style="width:200px" />
       <div class="label">端口:</div>
 
       <el-input-number v-model="form.serverPort" :min="0" :max="65535" />
     </div>
-    <div class="flex-row gap20" style="margin: 20px 0">
+    <div class="flex-row-vertical-center gap20" style="margin: 20px 0">
       <div class="label">本地端口:</div>
       <el-input-number v-model="form.localPort" :min="0" :max="65535" />
       <span class="placeholder">0代表随机</span>
@@ -27,7 +27,7 @@ import DataArea from "@/components/DataArea.vue";
 
 const form = reactive({
   serverIp: "localhost",
-  serverPort: 8080,
+  serverPort: 8020,
   localPort: 0,
   receiveType: 'string'
 });

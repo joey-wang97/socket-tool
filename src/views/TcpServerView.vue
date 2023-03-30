@@ -1,6 +1,6 @@
 <template>
   <div class="flex-column">
-    <div class="flex-row gap20">
+    <div class="flex-row-vertical-center gap20">
       <div class=" label">选择ip</div>
       <el-select v-model="serverIp">
         <el-option v-for="item in ipOptions" :key="item.value" :label="item.label" :value="item.value" />
@@ -9,51 +9,53 @@
       <el-button @click="startBtnStatus.onClick" :color="startBtnStatus.color">{{ startBtnStatus.text }}</el-button>
     </div>
     <div class="flex-row auto-height" style="margin-top: 20px;">
-      <div class="left-panel">
-        <div v-for="(client, index) in clients" :key="index">
-          <div>{{ client.ip }}:{{ client.port }}</div>
-          <!-- 连接时间 -->
-          <div>{{ client.connectTime }}</div>
+      <div class="client-container">
+        <div v-for="(client, index) in clients" :key="index" class="client-item" :class="{
+          active: selectedClientIndex == index,
+        }">
+          <div @click="selectedClientIndex = index">
+            <div>{{ client.address }}:{{ client.port }}</div>
+            <!-- 连接时间 -->
+            <div class="time">{{ client.connectTime }}</div>
+          </div>
+          <div>
+            <el-button type="danger" :icon="Delete" @click="deleteClient(index)" />
+          </div>
         </div>
         <div v-if="!clients.length" class="placeholder" style="text-align: center; margin-top: 50px;">暂无客户端连接</div>
       </div>
       <!-- 消息区域 -->
-      <div>
-        <!-- 发送区 -->
-        <div>发送区</div>
-        <el-input v-model="sendData" :rows="5" type="textarea" placeholder="Please input data to send" />
-        <div>
-          <el-radio-group v-model="sendType" class="ml-4">
-            <el-radio label="1" size="large">Option 1</el-radio>
-            <el-radio label="2" size="large">Option 2</el-radio>
-          </el-radio-group>
-        </div>
-        <div>接收区</div>
-        <div>
-          <div v-for="(msg, index) in currClient.messages" :key="index">
-            {{ msg.type }} {{ msg.data }} {{ msg.time }}
-          </div>
-        </div>
+      <div class="data-area">
+        <data-area ref="dataAreaRef" @send="send" v-model:receiveType="currClient.data.receiveType" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, watch } from "vue";
+import { Delete } from '@element-plus/icons-vue'
 import net from "net";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { listAllLocalIp } from "@/util/commonUtil";
+import DataArea from "@/components/DataArea.vue";
 
 const serverIp = ref('0.0.0.0');
+const STATUS = {
+  CONNECTED: 0,
+  DISCONNECTED: 1,
+}
 const serverPort = ref(8020);
 let server = null;
 let serverStarted = ref(false);
 // 客户端列表
 const clients = reactive([]);
-const sendData = ref('');
-const sendType = ref('1');
-const currClient = reactive({});
+const selectedClientIndex = ref(0);
+const currClient = reactive({
+  data: {
+    receiveType: 'string'
+  }
+});
 // 获取本机所有ip
 const ipOptions = ['0.0.0.0'].concat(listAllLocalIp()).map(ip => {
   return {
@@ -77,35 +79,48 @@ const startBtnStatus = computed(() => {
   }
 })
 
+watch(selectedClientIndex,
+  (val, old) => {
+    currClient.data = clients[selectedClientIndex.value]
+  }
+);
+
 const startServer = () => {
   // 有新连接时，进入回调
   server = net.createServer();
   server.on('connection', (connection) => {
-    console.info('new client');
     ElMessage({
       message: "新的连接",
       type: "success",
     });
-    // https://nodejs.org/api/net.html#socketaddress
-    let address = connection.address();
-    clients.push({
-      ip: address.ip,
-      family: address.family,
-      address: address.address,
-      messages: []
-    });
+    console.debug('new connection', connection);
+    let c = {
+      port: connection.remotePort,
+      family: connection.remoteFamily,
+      address: connection.remoteAddress,
+      messages: [],
+      status: STATUS.CONNECTED,
+      connectTime: new Date().toLocaleString()
+    };
+    clients.push(c);
+    // 如果只有一个连接，默认第一个为选中的
+    if (clients.length == 1) {
+      selectedClientIndex.value = 0;
+    }
     // 不设置编码默认为Buffer接收
     // https://nodejs.org/api/stream.html#readablesetencodingencoding
     // connection.setEncoding('')
     connection.on('close', () => {
-      clients.messages.push({
+      c.messages.push({
         data: 'client closed',
         time: new Date(),
         type: 'close'
       })
+      c.status = STATUS.CONNECTED;
     })
     connection.on('error', (e) => {
-      clients.messages.push({
+      console.error('client error', e);
+      c.messages.push({
         data: 'client error:' + e,
         time: new Date(),
         type: 'error'
@@ -160,6 +175,21 @@ const stopServer = () => {
   // serverStarted.value = false;
 }
 
+const deleteClient = (index) => {
+  // let index = -1;
+  // for (let i in clients) {
+  //   let client = clients[i];
+  //   if (client.connectTime == time) {
+  //     index = i;
+  //     break;
+  //   }
+  // }
+  if (index < 0) {
+    return;
+  }
+  clients.splice(index, 1);
+}
+
 // const send = () => {
 //   if (client == null) {
 //     ElMessage({
@@ -188,10 +218,39 @@ const addMessage = ({ content, type }) => {
 };
 </script>
 
-<style lang="less">
-.left-panel {
+<style lang="less" scoped>
+.client-container {
   border: 1px solid #ccc;
   height: 100%;
-  width:200px
+  width: 200px;
+
+  .client-item {
+    width: 100%;
+    padding: 20px 0;
+    text-align: center;
+    // color: #a8abb2;
+    font-size: 16px;
+    font-weight: 400;
+    border-bottom: 1px solid #dcdfe6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .active {
+    color: #409eff;
+    font-weight: bold;
+  }
+
+  .time {
+    font-size: 12px;
+    color: #a8abb2;
+  }
+}
+
+.data-area {
+  width: 100%;
+  margin: 20px;
+  // text-align: center;
 }
 </style>

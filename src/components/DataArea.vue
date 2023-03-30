@@ -1,7 +1,7 @@
 <template>
   <div class="flex-column gap20">
     <div class="flex-column gap10">
-      <div class="flex-row gap20">
+      <div class="flex-row-vertical-center gap20">
         <div class="label">发送区数据: </div>
         <div>
           <el-radio-group v-model="form.sendType">
@@ -17,7 +17,7 @@
       </div>
       <el-input v-model="form.data" :rows="3" type="textarea" />
     </div>
-    <div class="flex-row gap20">
+    <div class="flex-row-vertical-center gap20">
       <div class=" label">接收区数据:</div>
       <el-radio-group :modelValue="props.receiveType" @change="changeReceiveType">
         <el-radio label="string">文本</el-radio>
