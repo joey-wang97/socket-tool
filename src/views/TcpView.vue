@@ -94,15 +94,16 @@ const connect = () => {
   });
   socket.on("end", () => {
     console.debug("disconnected from server");
+    addMessage(`连接已断开`);
     socketConnected.value = false;
   });
 };
 
 const disconnect = () => {
-  socketConnected.value = false;
-  addMessage(`连接已断开`);
+  addMessage(`正在断开连接....`);
   if (socket == null) return;
   socket.end();
+  socket.destroy();
 };
 
 const send = (data) => {

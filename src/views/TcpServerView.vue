@@ -9,20 +9,25 @@
       <el-button @click="startBtnStatus.onClick" :color="startBtnStatus.color">{{ startBtnStatus.text }}</el-button>
     </div>
     <div class="flex-row auto-height" style="margin-top: 20px;">
-      <div class="client-container">
-        <div v-for="(client, index) in clients" :key="index" class="client-item" :class="{
-          active: selectedClientIndex == index,
-        }">
-          <div @click="selectedClientIndex = index">
-            <div>{{ client.address }}:{{ client.port }}</div>
-            <!-- 连接时间 -->
-            <div class="time">{{ client.connectTime }}</div>
-          </div>
-          <div>
-            <el-button type="danger" :icon="Delete" @click="deleteClient(index)" />
-          </div>
+      <div>
+        <div>
+          <el-button @click="clearClosedClient" style="margin-bottom: 20px;">清除无效连接</el-button>
         </div>
-        <div v-if="!clients.length" class="placeholder" style="text-align: center; margin-top: 50px;">暂无客户端连接</div>
+        <div class="client-container">
+          <div v-for="(client, index) in clients.data" :key="index" class="client-item" :class="{
+            active: selectedClientIndex == index,
+          }">
+            <div @click="selectedClientIndex = index">
+              <div>{{ client.address }}:{{ client.port }}</div>
+              <!-- 连接时间 -->
+              <div class="time">{{ client.connectTime }}</div>
+            </div>
+            <div>
+              <el-button type="danger" :icon="Delete" @click="deleteClient(index)" />
+            </div>
+          </div>
+          <div v-if="!clients.data.length" class="placeholder" style="text-align: center; margin-top: 50px;">暂无客户端连接</div>
+        </div>
       </div>
       <!-- 消息区域 -->
       <div class="data-area">
@@ -49,7 +54,7 @@ const serverPort = ref(8020);
 let server = null;
 let serverStarted = ref(false);
 // 客户端列表
-const clients = reactive([]);
+const clients = reactive({ data: [] });
 const selectedClientIndex = ref(0);
 const currClient = reactive({
   data: {
@@ -81,7 +86,7 @@ const startBtnStatus = computed(() => {
 
 watch(selectedClientIndex,
   (val, old) => {
-    currClient.data = clients[selectedClientIndex.value]
+    currClient.data = clients.data[selectedClientIndex.value]
   }
 );
 
@@ -89,22 +94,22 @@ const startServer = () => {
   // 有新连接时，进入回调
   server = net.createServer();
   server.on('connection', (connection) => {
-    ElMessage({
-      message: "新的连接",
-      type: "success",
-    });
     console.debug('new connection', connection);
     let c = {
       port: connection.remotePort,
       family: connection.remoteFamily,
       address: connection.remoteAddress,
-      messages: [],
+      messages: [{
+        data: 'new client',
+        time: new Date(),
+        type: 'info'
+      }],
       status: STATUS.CONNECTED,
       connectTime: new Date().toLocaleString()
     };
-    clients.push(c);
+    clients.data.push(c);
     // 如果只有一个连接，默认第一个为选中的
-    if (clients.length == 1) {
+    if (clients.data.length == 1) {
       selectedClientIndex.value = 0;
     }
     // 不设置编码默认为Buffer接收
@@ -116,7 +121,7 @@ const startServer = () => {
         time: new Date(),
         type: 'close'
       })
-      c.status = STATUS.CONNECTED;
+      c.status = STATUS.DISCONNECTED;
     })
     connection.on('error', (e) => {
       console.error('client error', e);
@@ -127,7 +132,7 @@ const startServer = () => {
       })
     })
     connection.on('data', (data) => {
-      clients.messages.push({
+      c.messages.push({
         data: data,
         time: new Date(),
         type: 'data'
@@ -176,41 +181,45 @@ const stopServer = () => {
 }
 
 const deleteClient = (index) => {
-  // let index = -1;
-  // for (let i in clients) {
-  //   let client = clients[i];
-  //   if (client.connectTime == time) {
-  //     index = i;
-  //     break;
-  //   }
-  // }
   if (index < 0) {
     return;
   }
-  clients.splice(index, 1);
+  clients.data.splice(index, 1);
 }
 
-// const send = () => {
-//   if (client == null) {
-//     ElMessage({
-//       message: "请先启动服务",
-//       type: "warning",
-//     });
-//     return;
-//   }
-//   if (!form.data) {
-//     ElMessage({
-//       message: "请输入要发送的内容",
-//       type: "warning",
-//     });
-//     return;
-//   }
-//   client.write(form.data);
-//   ElMessage({
-//     message: "send data success",
-//     type: "success",
-//   });
-// };
+// 清除已关闭的连接
+const clearClosedClient = () => {
+  let temp = [];
+  for (let c of clients.data) {
+    if (c.status == STATUS.CONNECTED) {
+      temp.push(c);
+    }
+  }
+  // console.log(temp.length)
+  clients.data = temp;
+}
+
+const send = () => {
+  // if (client == null) {
+  //   ElMessage({
+  //     message: "请先启动服务",
+  //     type: "warning",
+  //   });
+  //   return;
+  // }
+  // if (!form.data) {
+  //   ElMessage({
+  //     message: "请输入要发送的内容",
+  //     type: "warning",
+  //   });
+  //   return;
+  // }
+  // client.write(form.data);
+  // ElMessage({
+  //   message: "send data success",
+  //   type: "success",
+  // });
+};
 
 const addMessage = ({ content, type }) => {
   console.debug(content);
@@ -223,6 +232,8 @@ const addMessage = ({ content, type }) => {
   border: 1px solid #ccc;
   height: 100%;
   width: 200px;
+  // 禁止压缩此元素的空间
+  flex-shrink: 0;
 
   .client-item {
     width: 100%;
@@ -249,7 +260,7 @@ const addMessage = ({ content, type }) => {
 }
 
 .data-area {
-  width: 100%;
+  flex-grow: 1;
   margin: 20px;
   // text-align: center;
 }
