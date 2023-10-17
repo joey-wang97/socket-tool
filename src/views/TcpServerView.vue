@@ -9,7 +9,7 @@
       <el-button @click="startBtnStatus.onClick" :color="startBtnStatus.color">{{ startBtnStatus.text }}</el-button>
     </div>
     <div class="flex-row auto-height" style="margin-top: 20px;">
-      <div>
+      <div class="flex-column">
         <div>
           <el-button @click="clearClosedClient" style="margin-bottom: 20px;">清除无效连接</el-button>
         </div>
@@ -230,7 +230,7 @@ const addMessage = ({ content, type }) => {
 <style lang="less" scoped>
 .client-container {
   border: 1px solid #ccc;
-  height: 100%;
+  flex-grow: 1;
   width: 200px;
   // 禁止压缩此元素的空间
   flex-shrink: 0;

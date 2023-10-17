@@ -28,7 +28,7 @@
       <el-input :value="form.savePath" disabled style="width:250px" />
       <el-button @click="openSaveFile">打开文件</el-button>
     </div>
-    <div class="recv-area thin-scrollbar">
+    <div ref="recvAreaRef" class="recv-area thin-scrollbar">
       <div v-for="(msg, index) in messages" :key="index">
         <span class="placeholder">{{ msg.time }}:</span> {{ msg.content }}
       </div>
@@ -48,7 +48,7 @@ const props = defineProps({
   receiveType: String
 })
 const emit = defineEmits(["send", "update:receiveType"]);
-
+const recvAreaRef = ref();
 
 const form = reactive({
   sendType: 'string',
@@ -92,7 +92,7 @@ const toggleSave = (save) => {
   }
 }
 
-const addMessage = async (data) => {
+const addMessage = async (data, scrollToEnd = true) => {
   let content = data;
   let time = formatNow();
   messages.push({
@@ -102,6 +102,9 @@ const addMessage = async (data) => {
   if (form.saveReceivedData) {
     // https://nodejs.org/api/fs.html#fspromiseswritefilefile-data-options
     await writeFile(form.savePath, `${time}: ${content}\n`, { flag: 'a+' })
+  }
+  if (scrollToEnd) {
+    recvAreaRef.value.scrollTop = recvAreaRef.value.scrollHeight;
   }
 }
 

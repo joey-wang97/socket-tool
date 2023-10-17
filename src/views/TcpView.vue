@@ -94,7 +94,12 @@ const connect = () => {
   });
   socket.on("end", () => {
     console.debug("disconnected from server");
-    addMessage(`连接已断开`);
+    addMessage(`服务端已关闭`);
+    socketConnected.value = false;
+  });
+  socket.on("close", () => {
+    console.debug("socket closed");
+    addMessage(`连接已关闭`);
     socketConnected.value = false;
   });
 };
