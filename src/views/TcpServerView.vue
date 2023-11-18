@@ -31,7 +31,7 @@
       </div>
       <!-- 消息区域 -->
       <div class="data-area">
-        <data-area ref="dataAreaRef" @send="send" v-model:receiveType="currClient.data.receiveType" />
+        <data-area ref="dataAreaRef" @send="send" v-model:receiveType="config.receiveType" />
       </div>
     </div>
   </div>
@@ -45,11 +45,15 @@ import { ElMessage, ElMessageBox } from "element-plus";
 import { listAllLocalIp } from "@/util/commonUtil";
 import DataArea from "@/components/DataArea.vue";
 
+const dataAreaRef = ref();
 const serverIp = ref('0.0.0.0');
 const STATUS = {
   CONNECTED: 0,
   DISCONNECTED: 1,
 }
+const config = reactive({
+  receiveType: 'string'
+})
 const serverPort = ref(8020);
 let server = null;
 let serverStarted = ref(false);
@@ -115,6 +119,9 @@ const startServer = () => {
     // 不设置编码默认为Buffer接收
     // https://nodejs.org/api/stream.html#readablesetencodingencoding
     // connection.setEncoding('')
+
+    addMessage(`客户端连接, IP:${c.address}, port:${c.port}`);
+
     connection.on('close', () => {
       c.messages.push({
         data: 'client closed',
@@ -122,6 +129,7 @@ const startServer = () => {
         type: 'close'
       })
       c.status = STATUS.DISCONNECTED;
+      addMessage(`客户端断开, IP:${c.address}, port:${c.port}`);
     })
     connection.on('error', (e) => {
       console.error('client error', e);
@@ -137,6 +145,7 @@ const startServer = () => {
         time: new Date(),
         type: 'data'
       })
+      addMessage(`(${c.address}:${c.port}): ${data}`);
     })
   });
   server.on("error", (e) => {
@@ -221,9 +230,9 @@ const send = () => {
   // });
 };
 
-const addMessage = ({ content, type }) => {
-  console.debug(content);
-  // messages.value = messages.value + content;
+const addMessage = async (msg) => {
+  console.debug(msg);
+  await dataAreaRef.value.addMessage(msg);
 };
 </script>
 
@@ -232,6 +241,7 @@ const addMessage = ({ content, type }) => {
   border: 1px solid #ccc;
   flex-grow: 1;
   width: 200px;
+  padding: 0 10px;
   // 禁止压缩此元素的空间
   flex-shrink: 0;
 

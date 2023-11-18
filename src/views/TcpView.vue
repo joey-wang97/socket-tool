@@ -14,7 +14,7 @@
       <el-button @click="connectBtnStatus.onClick" :color="connectBtnStatus.color">{{ connectBtnStatus.text }}</el-button>
     </div>
     <div>
-      <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" />
+      <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="socketConnected" />
     </div>
   </div>
 </template>
@@ -111,7 +111,7 @@ const disconnect = () => {
   socket.destroy();
 };
 
-const send = (data) => {
+const send = (data, showMsgBox = true) => {
   if (socket == null || !socketConnected.value) {
     ElMessage({
       message: "请先连接服务",
@@ -120,10 +120,12 @@ const send = (data) => {
     return;
   }
   socket.write(data);
-  ElMessage({
-    message: "发送成功",
-    type: "success",
-  });
+  if (showMsgBox) {
+    ElMessage({
+      message: "发送成功",
+      type: "success",
+    });
+  }
   // addMessage('发送成功');
 };
 

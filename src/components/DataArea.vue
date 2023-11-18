@@ -14,6 +14,11 @@
           <el-button @click="send" color="blue">发送</el-button>
           <el-button @click="clear">清空</el-button>
         </div>
+        <div class="flex-row-vertical-center gap10">
+          <el-checkbox v-model="form.enableIntervalSend" @change="toogleIntervalSend"></el-checkbox>
+          <div class="label">每隔 <el-input-number v-model="form.sendingInterval" :disabled="form.enableIntervalSend"
+              style="width:100px" :controls="false" /> ms发送</div>
+        </div>
       </div>
       <el-input v-model="form.data" :rows="3" type="textarea" />
     </div>
@@ -43,28 +48,41 @@ import { ElMessage } from "element-plus";
 import { formatNow, getCompactToday } from "@/util/commonUtil";
 import { chooseDirectory, openPath } from "@/util/ipcUtil";
 import { writeFile } from 'node:fs/promises';
+import { clearInterval } from "timers";
 
 const props = defineProps({
-  receiveType: String
+  receiveType: String,
+  connected: Boolean,
 })
 const emit = defineEmits(["send", "update:receiveType"]);
 const recvAreaRef = ref();
+let sendingTask;
 
 const form = reactive({
   sendType: 'string',
   data: '',
   receiveType: 'string',
   saveReceivedData: false,
-  savePath: ''
+  savePath: '',
+  sendingInterval: null
 });
 const messages = reactive([]);
 
-const send = () => {
-  if (!form.data) {
+const send = (showMsgBox = true) => {
+  if (!props.connected) {
     ElMessage({
-      message: "请输入要发送的数据",
+      message: "请先建立连接",
       type: "warning",
     });
+    return;
+  }
+  if (!form.data) {
+    if (showMsgBox) {
+      ElMessage({
+        message: "请输入要发送的数据",
+        type: "warning",
+      });
+    }
     return;
   }
   let data = form.data;
@@ -72,7 +90,7 @@ const send = () => {
     // 用空格分隔，以十六进制转成整数
     data = Buffer.from(form.data.split(" ").map(i => parseInt(i, 16)));
   }
-  emit("send", data);
+  emit("send", data, showMsgBox);
 };
 
 const toggleSave = (save) => {
@@ -121,7 +139,28 @@ const clearRecv = () => {
 }
 
 const openSaveFile = () => {
+  if (!form.savePath) {
+    ElMessage({
+      message: "请选择保存路径",
+      type: "warning",
+    });
+    return;
+  }
   openPath(form.savePath);
+}
+
+const toogleIntervalSend = () => {
+  // clear previous interval task
+  if (sendingTask) {
+    clearInterval(sendingTask);
+    sendingTask = null;
+  }
+
+  if (!form.sendingInterval || !form.enableIntervalSend) {
+    return;
+  }
+  // don't show warning
+  sendingTask = setInterval(send, form.sendingInterval, false);
 }
 // 初始化函数后才能expose
 defineExpose({ addMessage });

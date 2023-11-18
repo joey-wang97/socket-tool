@@ -16,7 +16,7 @@
       <el-button @click="createBtnStatus.onClick" :color="createBtnStatus.color">{{ createBtnStatus.text }}</el-button>
     </div>
     <div>
-      <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" />
+      <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="udpListening" />
     </div>
     <!-- <el-form :model="form">
       <el-form-item label="local port">
@@ -127,7 +127,7 @@ const create = () => {
     addMessage(`UDP创建成功, 正在监听:${form.localPort}`);
   });
   server.bind(form.localPort, form.localAddress, () => {
-    
+
   });
 
 };
@@ -141,7 +141,7 @@ const close = () => {
 };
 
 
-const send = (data) => {
+const send = (data, showMsgBox) => {
   if (server == null) {
     ElMessage({
       message: "please create server first",
@@ -150,10 +150,12 @@ const send = (data) => {
     return;
   }
   server.send(data, form.targetPort, form.targetAddress, () => {
-    ElMessage({
-      message: "send data success",
-      type: "success",
-    });
+    if (showMsgBox) {
+      ElMessage({
+        message: "send data success",
+        type: "success",
+      });
+    }
     addMessage("发送成功");
   });
 };
