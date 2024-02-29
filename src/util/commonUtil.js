@@ -511,3 +511,20 @@ export function listAllLocalIp() {
     }
     return ips;
 }
+
+/**
+ * buffer数据转换成hex格式字符串
+ */
+export function buffer2HexString(data) {
+    data = data.toString('hex');
+    let t = "";
+    let i = 0;
+    // 每隔两个字符插空格
+    while (i < data.length) {
+        t += data[i];
+        t += data[i + 1];
+        i = i + 2;
+        t += " ";
+    }
+    return t;
+}

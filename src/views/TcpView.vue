@@ -24,6 +24,7 @@ import { reactive, ref, computed } from "vue";
 import net from "net";
 import { ElMessage } from "element-plus";
 import DataArea from "@/components/DataArea.vue";
+import {buffer2HexString} from '@/util/commonUtil'
 
 const form = reactive({
   serverIp: "localhost",
@@ -76,19 +77,10 @@ const connect = () => {
   });
 
   socket.on("data", (data) => {
-    console.debug('on data', data);
+    // console.debug('on data', data);
+    // 16进制接收
     if (data instanceof Buffer && form.receiveType == 'hex') {
-      data = data.toString('hex');
-      let t = "";
-      let i = 0;
-      // 每隔两个字符插空格
-      while (i < data.length) {
-        t += data[i];
-        t += data[i + 1];
-        i = i + 2;
-        t += " ";
-      }
-      data = t;
+      data = buffer2HexString(data);
     }
     addMessage(data);
   });

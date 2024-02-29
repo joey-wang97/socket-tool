@@ -53,6 +53,10 @@ import { clearInterval } from "timers";
 const props = defineProps({
   receiveType: String,
   connected: Boolean,
+  notConnectedMsg: {
+    type: String,
+    default: "请先建立连接"
+  }
 })
 const emit = defineEmits(["send", "update:receiveType"]);
 const recvAreaRef = ref();
@@ -71,7 +75,7 @@ const messages = reactive([]);
 const send = (showMsgBox = true) => {
   if (!props.connected) {
     ElMessage({
-      message: "请先建立连接",
+      message: props.notConnectedMsg,
       type: "warning",
     });
     return;

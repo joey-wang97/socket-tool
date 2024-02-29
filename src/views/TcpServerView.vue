@@ -20,7 +20,17 @@
             <div @click="selectedClientIndex = index">
               <div>{{ client.address }}:{{ client.port }}</div>
               <!-- 连接时间 -->
-              <div class="time">{{ client.connectTime }}</div>
+              <div class="flex-row gap10">
+                <div class="time">{{ client.connectTime }}</div>
+                <div v-if="client.status == STATUS.CONNECTED">
+                  <el-icon color="#67C23A">
+                    <CircleCheck />
+                  </el-icon>
+                </div>
+                <div v-else>
+                  <el-icon color="#F56C6C"><CircleClose /></el-icon>
+                </div>
+              </div>
             </div>
             <div>
               <el-button type="danger" :icon="Delete" @click="deleteClient(index)" />
@@ -31,18 +41,20 @@
       </div>
       <!-- 消息区域 -->
       <div class="data-area">
-        <data-area ref="dataAreaRef" @send="send" v-model:receiveType="config.receiveType" />
+        <!-- 只有currClient的状态为已连接时，才可以发送 -->
+        <data-area ref="dataAreaRef" @send="send" v-model:receiveType="config.receiveType"
+          :connected="currClient && currClient.status == STATUS.CONNECTED" notConnectedMsg="请选择一个有效连接" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, computed, watch } from "vue";
+import { reactive, ref, computed, watch, toRaw } from "vue";
 import { Delete } from '@element-plus/icons-vue'
 import net from "net";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { listAllLocalIp } from "@/util/commonUtil";
+import { listAllLocalIp, buffer2HexString } from "@/util/commonUtil";
 import DataArea from "@/components/DataArea.vue";
 
 const dataAreaRef = ref();
@@ -58,13 +70,22 @@ const serverPort = ref(8020);
 let server = null;
 let serverStarted = ref(false);
 // 客户端列表
+/**
+ * port: connection.remotePort,
+    family: connection.remoteFamily,
+    address: connection.remoteAddress,
+    messages: [{
+      data: 'new client',
+      time: new Date(),
+      type: 'info'
+    }],
+    status: STATUS.CONNECTED,
+    connectTime: new Date().toLocaleString(),
+    connection: connection
+ */
 const clients = reactive({ data: [] });
 const selectedClientIndex = ref(0);
-const currClient = reactive({
-  data: {
-    receiveType: 'string'
-  }
-});
+
 // 获取本机所有ip
 const ipOptions = ['0.0.0.0'].concat(listAllLocalIp()).map(ip => {
   return {
@@ -72,6 +93,19 @@ const ipOptions = ['0.0.0.0'].concat(listAllLocalIp()).map(ip => {
     value: ip
   }
 });
+
+watch(selectedClientIndex,
+  (val, old) => {
+    console.log('test', clients.data[selectedClientIndex.value]);
+  }
+);
+
+/**
+ * 活跃连接数量
+ */
+const activeClientCount = computed(() => clients.data.filter(c => c.status == STATUS.CONNECTED).length);
+
+const currClient = computed(() => clients.data[selectedClientIndex.value]);
 
 const startBtnStatus = computed(() => {
   if (serverStarted.value) {
@@ -88,18 +122,15 @@ const startBtnStatus = computed(() => {
   }
 })
 
-watch(selectedClientIndex,
-  (val, old) => {
-    currClient.data = clients.data[selectedClientIndex.value]
-  }
-);
-
+let testc = null;
 const startServer = () => {
   // 有新连接时，进入回调
   server = net.createServer();
   server.on('connection', (connection) => {
     console.debug('new connection', connection);
-    let c = {
+    // 这里必须定义c为reactive对象，因为在其他对方有对c的修改。比如status和messages
+    // 如果不定义为reactive，修改时不会响应式更新
+    let c = reactive({
       port: connection.remotePort,
       family: connection.remoteFamily,
       address: connection.remoteAddress,
@@ -109,8 +140,11 @@ const startServer = () => {
         type: 'info'
       }],
       status: STATUS.CONNECTED,
-      connectTime: new Date().toLocaleString()
-    };
+      connectTime: new Date().toLocaleString(),
+      // connection为socket对象，需要通过toRaw获取到原始对象后使用
+      connection: connection
+    });
+    testc = connection;
     clients.data.push(c);
     // 如果只有一个连接，默认第一个为选中的
     if (clients.data.length == 1) {
@@ -145,6 +179,10 @@ const startServer = () => {
         time: new Date(),
         type: 'data'
       })
+      console.debug('test', data);
+      if (data instanceof Buffer && config.receiveType == 'hex') {
+        data = buffer2HexString(data);
+      };
       addMessage(`(${c.address}:${c.port}): ${data}`);
     })
   });
@@ -193,7 +231,27 @@ const deleteClient = (index) => {
   if (index < 0) {
     return;
   }
-  clients.data.splice(index, 1);
+  // 如果删除的客户端建立了连接，则弹出提示
+  if (clients.data[index].status == STATUS.CONNECTED) {
+    ElMessageBox.confirm(
+      '当前客户端已连接，是否确认删除?',
+      '警告',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+    )
+      .then(() => {
+        clients.data.splice(index, 1);
+      })
+      .catch(() => {
+        // ElMessage({
+        //   type: 'info',
+        //   message: 'Delete canceled',
+        // })
+      });
+  }
 }
 
 // 清除已关闭的连接
@@ -208,26 +266,15 @@ const clearClosedClient = () => {
   clients.data = temp;
 }
 
-const send = () => {
-  // if (client == null) {
-  //   ElMessage({
-  //     message: "请先启动服务",
-  //     type: "warning",
-  //   });
-  //   return;
-  // }
-  // if (!form.data) {
-  //   ElMessage({
-  //     message: "请输入要发送的内容",
-  //     type: "warning",
-  //   });
-  //   return;
-  // }
-  // client.write(form.data);
-  // ElMessage({
-  //   message: "send data success",
-  //   type: "success",
-  // });
+const send = (data, showMsgBox = false) => {
+  // 如果不使用toRaw，获取到的是代理对象，使用代理对象调用write会出现Illgal invocation
+  toRaw(currClient.value).connection.write(data);
+  if (showMsgBox) {
+    ElMessage({
+      message: "发送成功",
+      type: "success",
+    });
+  }
 };
 
 const addMessage = async (msg) => {
