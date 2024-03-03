@@ -40,11 +40,11 @@
         </div>
       </div>
       <!-- 消息区域 -->
-      <div class="data-area">
+      <!-- <div class="data-area"> -->
         <!-- 只有currClient的状态为已连接时，才可以发送 -->
-        <data-area ref="dataAreaRef" @send="send" v-model:receiveType="config.receiveType"
+        <data-area ref="dataAreaRef" class="data-area" @send="send" v-model:receiveType="config.receiveType"
           :connected="currClient && currClient.status == STATUS.CONNECTED" notConnectedMsg="请选择一个有效连接" />
-      </div>
+      <!-- </div> -->
     </div>
   </div>
 </template>
@@ -94,12 +94,6 @@ const ipOptions = ['0.0.0.0'].concat(listAllLocalIp()).map(ip => {
   }
 });
 
-watch(selectedClientIndex,
-  (val, old) => {
-    console.log('test', clients.data[selectedClientIndex.value]);
-  }
-);
-
 /**
  * 活跃连接数量
  */
@@ -122,7 +116,6 @@ const startBtnStatus = computed(() => {
   }
 })
 
-let testc = null;
 const startServer = () => {
   // 有新连接时，进入回调
   server = net.createServer();
@@ -144,7 +137,6 @@ const startServer = () => {
       // connection为socket对象，需要通过toRaw获取到原始对象后使用
       connection: connection
     });
-    testc = connection;
     clients.data.push(c);
     // 如果只有一个连接，默认第一个为选中的
     if (clients.data.length == 1) {
@@ -179,7 +171,6 @@ const startServer = () => {
         time: new Date(),
         type: 'data'
       })
-      console.debug('test', data);
       if (data instanceof Buffer && config.receiveType == 'hex') {
         data = buffer2HexString(data);
       };
@@ -318,7 +309,8 @@ const addMessage = async (msg) => {
 
 .data-area {
   flex-grow: 1;
-  margin: 20px;
+  margin-left: 20px;
+  display: flex;
   // text-align: center;
 }
 </style>

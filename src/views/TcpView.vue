@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex-column auto-height">
     <div class="flex-row-vertical-center gap20">
       <div class="label">服务端地址:</div>
       <el-input v-model="form.serverIp" style="width:200px" />
@@ -13,9 +13,7 @@
       <span class="placeholder">0代表随机</span>
       <el-button @click="connectBtnStatus.onClick" :color="connectBtnStatus.color">{{ connectBtnStatus.text }}</el-button>
     </div>
-    <div>
       <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="socketConnected" />
-    </div>
   </div>
 </template>
 

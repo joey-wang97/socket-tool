@@ -2,7 +2,7 @@
 
 ## todo
 TCPServer切换客户端时切换数据
-DataArea无法滚动到最底部
+SerialView
 
 ## bug
 - Cannot read property 'isCE' of null 

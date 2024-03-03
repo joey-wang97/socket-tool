@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex-column auto-height">
     <div class="flex-row-vertical-center gap20">
       <div class="label">目标地址:</div>
       <el-input v-model="form.targetAddress" style="width:200px" />
@@ -15,32 +15,7 @@
       <el-input-number v-model="form.localPort" :min="0" :max="65535" />
       <el-button @click="createBtnStatus.onClick" :color="createBtnStatus.color">{{ createBtnStatus.text }}</el-button>
     </div>
-    <div>
-      <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="udpListening" />
-    </div>
-    <!-- <el-form :model="form">
-      <el-form-item label="local port">
-        <el-input v-model="form.localPort" />
-      </el-form-item>
-      <el-form-item label="address">
-        <el-input v-model="form.address" />
-      </el-form-item>
-      <el-form-item label="target address">
-        <el-input v-model="form.targetAddress" />
-      </el-form-item>
-      <el-form-item label="target port">
-        <el-input v-model="form.targetPort" />
-      </el-form-item>
-
-      <el-form-item label="data to send">
-        <el-input v-model="form.data" />
-      </el-form-item>
-      <el-form-item>
-        <el-button @click="create" color="green">Create</el-button>
-        <el-button @click="send" color="blue">Send</el-button>
-      </el-form-item>
-    </el-form>
-    <el-input v-model="messages" :rows="15" type="textarea" placeholder="messages" /> -->
+    <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="udpListening" />
   </div>
 </template>
 

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex-column gap20">
+  <div class="flex-column gap20 auto-height">
     <div class="flex-column gap10">
       <div class="flex-row-vertical-center gap20">
         <div class="label">发送区数据: </div>
@@ -33,8 +33,8 @@
       <el-input :value="form.savePath" disabled style="width:250px" />
       <el-button @click="openSaveFile">打开文件</el-button>
     </div>
-    <div ref="recvAreaRef" class="recv-area thin-scrollbar">
-      <div v-for="(msg, index) in messages" :key="index">
+    <div ref="recvAreaRef" class="auto-height recv-area thin-scrollbar">
+      <div v-for="(msg, index) in messages" :key="index" class="msg-item">
         <span class="placeholder">{{ msg.time }}:</span> {{ msg.content }}
       </div>
     </div>
@@ -42,7 +42,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, computed } from "vue";
+import { reactive, ref, computed, watch, nextTick } from "vue";
 import path from "path";
 import { ElMessage } from "element-plus";
 import { formatNow, getCompactToday } from "@/util/commonUtil";
@@ -126,7 +126,10 @@ const addMessage = async (data, scrollToEnd = true) => {
     await writeFile(form.savePath, `${time}: ${content}\n`, { flag: 'a+' })
   }
   if (scrollToEnd) {
-    recvAreaRef.value.scrollTop = recvAreaRef.value.scrollHeight;
+    // 等待元素渲染完成
+    await nextTick();
+    recvAreaRef.value.scrollTop = recvAreaRef.value.scrollHeight - recvAreaRef.value.clientHeight;
+    console.log(recvAreaRef.value.scrollTop, recvAreaRef.value.scrollHeight);
   }
 }
 
@@ -173,8 +176,12 @@ defineExpose({ addMessage });
 
 <style scoped>
 .recv-area {
-  height: 200px;
+  /* height: 200px; */
   border: 1px solid #ccc;
   overflow: auto;
+}
+
+.msg-item{
+  padding: 3px 0;
 }
 </style>
