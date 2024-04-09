@@ -18,7 +18,7 @@
     "@serialport/bindings-cpp": "^10.8.0",
     "core-js": "^3.8.3",
     "element-plus": "^2.2.10",
-    "serialport": "^10.4.0",
+    "serialport": "^12.0.0",
     "vue": "^3.2.13"
   },
   "devDependencies": {
@@ -27,7 +27,7 @@
     "@vue/cli-service": "~5.0.8",
     "@vue/compiler-sfc": "^3.0.0",
     "babel-eslint": "^10.1.0",
-    "electron": "^18.1.0",
+    "electron": "^18.3.15",
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^7.32.0",
     "eslint-plugin-vue": "^8.0.3",

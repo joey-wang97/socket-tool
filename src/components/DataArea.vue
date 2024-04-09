@@ -5,8 +5,8 @@
         <div class="label">发送区数据: </div>
         <div>
           <el-radio-group v-model="form.sendType">
-            <el-radio label="string">文本</el-radio>
-            <el-radio label="hex">十六进制</el-radio>
+            <el-radio value="string">文本</el-radio>
+            <el-radio value="hex">十六进制</el-radio>
           </el-radio-group>
           <span class="placeholder" style="margin-left: 10px; font-size: 14px;">16进制用空格隔开: c3 a0 25</span>
         </div>
@@ -25,8 +25,8 @@
     <div class="flex-row-vertical-center gap20">
       <div class=" label">接收区数据:</div>
       <el-radio-group :modelValue="props.receiveType" @change="changeReceiveType">
-        <el-radio label="string">文本</el-radio>
-        <el-radio label="hex">十六进制</el-radio>
+        <el-radio value="string">文本</el-radio>
+        <el-radio value="hex">十六进制</el-radio>
       </el-radio-group>
       <el-button @click="clearRecv">清空</el-button>
       <el-checkbox v-model="form.saveReceivedData" label="保存到文件" @change="toggleSave" />

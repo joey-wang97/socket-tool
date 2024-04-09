@@ -1,18 +1,14 @@
 <template>
   <div>
-    <el-input
-      v-model="messages"
-      :rows="15"
-      type="textarea"
-      placeholder="messages"
-    />
+    <el-input v-model="messages" :rows="15" type="textarea" placeholder="messages" />
+    <el-button @click="refreshSerialPort">刷新</el-button>
   </div>
 </template>
 
 <script setup>
 import { reactive, ref } from "vue";
-import { SerialPort } from "serialport";
 import { ElMessage } from "element-plus";
+import { SerialPort } from 'serialport'
 
 const form = reactive({ path: "/dev/tty-usbserial1", baudRate: 57600 });
 const messages = ref("");
@@ -56,7 +52,10 @@ const send = () => {
     type: "success",
   });
 };
+const refreshSerialPort = async() => {
+
+  console.log(await SerialPort.list());
+}
 </script>
 
-<style>
-</style>
+<style></style>
