@@ -11,9 +11,10 @@
       <div class="label">本地端口:</div>
       <el-input-number v-model="form.localPort" :min="0" :max="65535" />
       <span class="placeholder">0代表随机</span>
-      <el-button @click="connectBtnStatus.onClick" :color="connectBtnStatus.color">{{ connectBtnStatus.text }}</el-button>
+      <el-button @click="connectBtnStatus.onClick" :color="connectBtnStatus.color">{{ connectBtnStatus.text
+        }}</el-button>
     </div>
-      <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="socketConnected" />
+    <data-area ref="dataAreaRef" @send="send" v-model:receiveType="form.receiveType" :connected="socketConnected" />
   </div>
 </template>
 
@@ -22,7 +23,7 @@ import { reactive, ref, computed } from "vue";
 import net from "net";
 import { ElMessage } from "element-plus";
 import DataArea from "@/components/DataArea.vue";
-import {buffer2HexString} from '@/util/commonUtil'
+import { buffer2HexString } from '@/util/commonUtil'
 
 const form = reactive({
   serverIp: "localhost",

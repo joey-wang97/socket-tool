@@ -2,7 +2,7 @@
   <div class="flex-column">
     <div class="flex-row-vertical-center gap20">
       <div class=" label">选择ip</div>
-      <el-select v-model="serverIp">
+      <el-select v-model="serverIp" style="width:300px">
         <el-option v-for="item in ipOptions" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
       <el-input-number v-model="serverPort" :min="0" :max="65535" />
@@ -242,7 +242,9 @@ const deleteClient = (index) => {
         //   message: 'Delete canceled',
         // })
       });
+    return;
   }
+  clients.data.splice(index, 1);
 }
 
 // 清除已关闭的连接
