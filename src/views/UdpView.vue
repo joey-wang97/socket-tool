@@ -8,7 +8,7 @@
     </div>
     <div class="flex-row-vertical-center gap20" style="margin: 20px 0">
       <div class=" label">本地地址</div>
-      <el-select v-model="form.localAddress">
+      <el-select v-model="form.localAddress" style="width:200px" >
         <el-option v-for="item in ipOptions" :key="item.value" :label="item.label" :value="item.value" />
       </el-select>
       <div class="label">本地端口:</div>

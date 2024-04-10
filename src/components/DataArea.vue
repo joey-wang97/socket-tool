@@ -16,8 +16,12 @@
         </div>
         <div class="flex-row-vertical-center gap10">
           <el-checkbox v-model="form.enableIntervalSend" @change="toogleIntervalSend"></el-checkbox>
-          <div class="label">每隔 <el-input-number v-model="form.sendingInterval" :disabled="form.enableIntervalSend"
-              style="width:100px" :controls="false" /> ms发送</div>
+          <div class="label">
+            <span>每隔</span>
+            <el-input-number v-model="form.sendingInterval" :disabled="form.enableIntervalSend" style="width:100px"
+              :controls="false" />
+            <span>ms发送</span>
+          </div>
         </div>
       </div>
       <el-input v-model="form.data" :rows="3" type="textarea" />
@@ -35,7 +39,7 @@
     </div>
     <div ref="recvAreaRef" class="auto-height recv-area thin-scrollbar">
       <div v-for="(msg, index) in messages" :key="index" class="msg-item">
-        <span class="placeholder">{{ msg.time }}:</span> {{ msg.content }}
+        <span class="placeholder" >{{ msg.time }}:</span> <span v-html="msg.content"></span>
       </div>
     </div>
   </div>
@@ -68,7 +72,7 @@ const form = reactive({
   receiveType: 'string',
   saveReceivedData: false,
   savePath: '',
-  sendingInterval: null
+  sendingInterval: 1000
 });
 const messages = reactive([]);
 
@@ -129,7 +133,7 @@ const addMessage = async (data, scrollToEnd = true) => {
     // 等待元素渲染完成
     await nextTick();
     recvAreaRef.value.scrollTop = recvAreaRef.value.scrollHeight - recvAreaRef.value.clientHeight;
-    console.log(recvAreaRef.value.scrollTop, recvAreaRef.value.scrollHeight);
+    // console.log(recvAreaRef.value.scrollTop, recvAreaRef.value.scrollHeight);
   }
 }
 
@@ -176,12 +180,14 @@ defineExpose({ addMessage });
 
 <style scoped>
 .recv-area {
-  /* height: 200px; */
+  height: 0;
   border: 1px solid #ccc;
   overflow: auto;
+  /* 设置超出宽度时换行 */
+  overflow-wrap: anywhere;
 }
 
-.msg-item{
+.msg-item {
   padding: 3px 0;
 }
 </style>

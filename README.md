@@ -1,14 +1,20 @@
 # socket-tool
+### TCP、UDP和串口测试工具
+基于electron，兼容windows, linux等平台
 
-## todo
-TCPServer切换客户端时切换数据
-SerialView
-接收到过长数据时有bug
-添加错误日志
-Ipv6 support
-串口接收esp32时显示waiting for download??
-README完善
+<!-- [Github链接](https://github.com/joye-wang/socket-tool "Github链接") -->
 
-## bug
-- Cannot read property 'isCE' of null 
-remove node modules , reinstall `cnpm i`
+[Gitee链接](https://gitee.com/joye-wang/socket-tool "Gitee链接")
+
+### 1. TCP Client
+![TCP Client](/screenshots/tcp_client.png "TCP Client")
+
+### 2. TCP Server
+![TCP Server](/screenshots/tcp_server.png "TCP Server")
+
+### 3. UDP
+![UDP](/screenshots/udp.png "UDP")
+
+### 4. Serial Port串口
+![Serial Select](/screenshots/serial_select.png "Serial Select")
+![Serial Data](/screenshots/serial_data.png "Serial Data")

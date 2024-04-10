@@ -15,8 +15,8 @@
         </div>
         <div class="client-container">
           <div v-for="(client, index) in clients.data" :key="index" class="client-item" :class="{
-            active: selectedClientIndex == index,
-          }">
+        active: selectedClientIndex == index,
+      }">
             <div @click="selectedClientIndex = index">
               <div>{{ client.address }}:{{ client.port }}</div>
               <!-- 连接时间 -->
@@ -28,7 +28,9 @@
                   </el-icon>
                 </div>
                 <div v-else>
-                  <el-icon color="#F56C6C"><CircleClose /></el-icon>
+                  <el-icon color="#F56C6C">
+                    <CircleClose />
+                  </el-icon>
                 </div>
               </div>
             </div>
@@ -36,15 +38,14 @@
               <el-button type="danger" :icon="Delete" @click="deleteClient(index)" />
             </div>
           </div>
-          <div v-if="!clients.data.length" class="placeholder" style="text-align: center; margin-top: 50px;">暂无客户端连接</div>
+          <div v-if="!clients.data.length" class="placeholder" style="text-align: center; margin-top: 50px;">暂无客户端连接
+          </div>
         </div>
       </div>
       <!-- 消息区域 -->
-      <!-- <div class="data-area"> -->
-        <!-- 只有currClient的状态为已连接时，才可以发送 -->
-        <data-area ref="dataAreaRef" class="data-area" @send="send" v-model:receiveType="config.receiveType"
-          :connected="currClient && currClient.status == STATUS.CONNECTED" notConnectedMsg="请选择一个有效连接" />
-      <!-- </div> -->
+      <!-- 只有currClient的状态为已连接时，才可以发送 -->
+      <data-area ref="dataAreaRef" class="data-area" @send="send" v-model:receiveType="config.receiveType"
+        :connected="currClient && currClient.status == STATUS.CONNECTED" notConnectedMsg="请选择一个有效连接" />
     </div>
   </div>
 </template>
@@ -214,6 +215,28 @@ const startServer = () => {
 };
 
 const stopServer = () => {
+  if (activeClientCount.value > 0) {
+    ElMessageBox.confirm(
+      '当前客户端已连接，是否确认删除?',
+      '警告',
+      {
+        confirmButtonText: 'OK',
+        cancelButtonText: 'Cancel',
+        type: 'warning',
+      }
+    )
+      .then(() => {
+        // 必须使用toRaw获取原始对象, 否则会报Illegal invocation
+        toRaw(clients.data).forEach(c => {
+          c.connection.end();
+          c.connection.destroy();
+        })
+        server.close();
+      })
+      .catch(() => {
+      });
+    return;
+  }
   server.close();
   // serverStarted.value = false;
 }
